@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>mqtt</title>
+	<script src="./mqttws31.js"></script>
+</head>
+<body>
+	<script>
+		//实例化mqtt对象
+		var a = new Paho.MQTT.Client("60.205.169.132",1883,"t250842_5B63");
+		var status = 0;
+		a.topic_class= 'iclass/class/'+class_id + '_' +user_id;
+		a.topic_my= "iclass/user/"+user_id;
+		//掉线
+		a.onConnectionLost = function(){
+
+		}
+		//收到消息
+		a.onMessageArrived = function(){
+
+		}
+		//发送的消息没有收到
+		a.onMessageDelivered = function(){
+
+		}
+
+		//参数配置
+		var options = {
+			userName: 'test',
+			password: 'test',
+			cleanSession: true,
+			keepAliveInterval: 5,
+			onSuccess: function(){
+				a.subscribe(a.topic_my,{'qos':1});
+				on_sendMessage(a.topic_my,'{"class":"report","params":{"action":"login","client_id":"t250842_5B63"}}',function(){});
+				status = 1;
+			},
+			onFailure: function(){
+				status = 0;
+			}
+		}
+
+		//执行连接
+		a.connect(options);
+		console.log(a);
+
+
+		function on_sendMessage( topic, msg , succ )
+			{
+				var send= function()
+				{
+					var message = new Paho.MQTT.Message(msg);
+					message.destinationName = topic;
+					me.client.send(message);
+					console.log('MQ_MSG',topic,msg);
+				    
+				    succ && succ();
+				}
+				if( status ){
+					send();
+				}else{
+					setTimeout(function(){send();},2000);
+				}
+			};
+	</script>
+</body>
+</html>
